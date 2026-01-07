@@ -4,8 +4,8 @@ import { supabase } from './supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('orbee360@gmail.com');
+  const [password, setPassword] = useState('Nirvana!1978');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
