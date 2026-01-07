@@ -22,7 +22,12 @@ const Login: React.FC = () => {
       });
 
       if (error) throw error;
-      navigate('/');
+
+      if (email === 'orbee360@gmail.com') {
+        navigate('/dashboard');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
