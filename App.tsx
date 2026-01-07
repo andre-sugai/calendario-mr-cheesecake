@@ -12,7 +12,7 @@ import {
   isSameDay,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, ArrowRight, Info, X, Lightbulb, Filter, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Info, X, Lightbulb, Filter, XCircle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { EVENTS_2026, WEEKDAYS, MONTHS } from './constants';
 import { CalendarEvent, DayData, EventType } from './types';
 
@@ -44,6 +44,7 @@ const App: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
   const [activeFilter, setActiveFilter] = useState<EventType | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Ref for modal focus management
   const modalCloseButtonRef = useRef<HTMLButtonElement>(null);
@@ -282,104 +283,114 @@ const App: React.FC = () => {
       </main>
 
       {/* RIGHT SIDEBAR: LEGEND */}
-      <aside className="w-full lg:w-80 flex-shrink-0" aria-label="Filtros e Legenda">
-        <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-sm border border-slate-100 sticky top-8">
-          <div className="mb-8 text-center">
-            <h3 className="text-brand-dark text-lg font-medium flex items-center justify-center gap-2">
-              <Filter size={18} aria-hidden="true" /> Filtrar por Tipo
-            </h3>
-            {activeFilter && (
-              <button 
-                onClick={() => setActiveFilter(null)}
-                className="text-xs text-red-500 flex items-center justify-center gap-1 mx-auto mt-2 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-1"
-                aria-label="Limpar filtro"
+      <aside className={`transition-all duration-300 ease-in-out relative ${isSidebarOpen ? 'w-full lg:w-80' : 'w-full lg:w-0'} flex-shrink-0`} aria-label="Filtros e Legenda">
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute top-8 -left-4 z-20 bg-white border border-slate-100 text-slate-400 hover:text-brand-dark p-1.5 rounded-full shadow-sm hidden lg:flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          title={isSidebarOpen ? "Recolher painel" : "Expandir painel"}
+        >
+          {isSidebarOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+
+        <div className={`transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 hidden lg:block lg:pointer-events-none'}`}>
+          <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-sm border border-slate-100 sticky top-8 w-full lg:w-80">
+            <div className="mb-8 text-center">
+              <h3 className="text-brand-dark text-lg font-medium flex items-center justify-center gap-2">
+                <Filter size={18} aria-hidden="true" /> Filtrar por Tipo
+              </h3>
+              {activeFilter && (
+                <button 
+                  onClick={() => setActiveFilter(null)}
+                  className="text-xs text-red-500 flex items-center justify-center gap-1 mx-auto mt-2 hover:underline focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-1"
+                  aria-label="Limpar filtro"
+                >
+                  <XCircle size={12} aria-hidden="true" /> Limpar filtro
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-4" role="group" aria-label="Filtros de eventos">
+              <button
+                onClick={() => toggleFilter('holiday')}
+                aria-pressed={activeFilter === 'holiday'}
+                className={`
+                  w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-holiday
+                  ${activeFilter === 'holiday' || activeFilter === null 
+                    ? 'bg-cal-holiday text-cal-holidayText opacity-100' 
+                    : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
+                  ${activeFilter === 'holiday' ? 'ring-2 ring-cal-holidayText ring-offset-2 scale-[1.02]' : ''}
+                `}
               >
-                <XCircle size={12} aria-hidden="true" /> Limpar filtro
+                Feriados
               </button>
-            )}
-          </div>
+              
+              <button
+                onClick={() => toggleFilter('commemorative')}
+                aria-pressed={activeFilter === 'commemorative'}
+                className={`
+                  w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-commemorative
+                  ${activeFilter === 'commemorative' || activeFilter === null 
+                    ? 'bg-cal-commemorative text-cal-commemorativeText opacity-100' 
+                    : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
+                  ${activeFilter === 'commemorative' ? 'ring-2 ring-cal-commemorativeText ring-offset-2 scale-[1.02]' : ''}
+                `}
+              >
+                Datas Comemorativas
+              </button>
 
-          <div className="flex flex-col gap-4" role="group" aria-label="Filtros de eventos">
-            <button
-              onClick={() => toggleFilter('holiday')}
-              aria-pressed={activeFilter === 'holiday'}
-              className={`
-                w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-holiday
-                ${activeFilter === 'holiday' || activeFilter === null 
-                  ? 'bg-cal-holiday text-cal-holidayText opacity-100' 
-                  : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
-                ${activeFilter === 'holiday' ? 'ring-2 ring-cal-holidayText ring-offset-2 scale-[1.02]' : ''}
-              `}
-            >
-              Feriados
-            </button>
-            
-            <button
-              onClick={() => toggleFilter('commemorative')}
-              aria-pressed={activeFilter === 'commemorative'}
-              className={`
-                w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-commemorative
-                ${activeFilter === 'commemorative' || activeFilter === null 
-                  ? 'bg-cal-commemorative text-cal-commemorativeText opacity-100' 
-                  : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
-                ${activeFilter === 'commemorative' ? 'ring-2 ring-cal-commemorativeText ring-offset-2 scale-[1.02]' : ''}
-              `}
-            >
-              Datas Comemorativas
-            </button>
+              <button
+                onClick={() => toggleFilter('special')}
+                aria-pressed={activeFilter === 'special'}
+                className={`
+                  w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-special
+                  ${activeFilter === 'special' || activeFilter === null 
+                    ? 'bg-cal-special text-cal-specialText opacity-100' 
+                    : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
+                  ${activeFilter === 'special' ? 'ring-2 ring-cal-specialText ring-offset-2 scale-[1.02]' : ''}
+                `}
+              >
+                Datas Especiais
+              </button>
+            </div>
 
-            <button
-              onClick={() => toggleFilter('special')}
-              aria-pressed={activeFilter === 'special'}
-              className={`
-                w-full py-3 px-6 rounded-2xl text-center text-sm font-medium shadow-sm transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cal-special
-                ${activeFilter === 'special' || activeFilter === null 
-                  ? 'bg-cal-special text-cal-specialText opacity-100' 
-                  : 'bg-slate-50 text-slate-400 opacity-60 hover:opacity-100'}
-                ${activeFilter === 'special' ? 'ring-2 ring-cal-specialText ring-offset-2 scale-[1.02]' : ''}
-              `}
-            >
-              Datas Especiais
-            </button>
-          </div>
+            <div className="mt-12 pt-8 border-t border-slate-100">
+               <h4 className="text-brand-dark/70 text-sm font-medium mb-4 flex items-center gap-2">
+                 <Info size={16} aria-hidden="true" /> Navegação Rápida
+               </h4>
+               <div className="grid grid-cols-3 gap-2" role="group" aria-label="Meses do ano">
+                  {MONTHS.map((m, i) => (
+                    <button 
+                      key={m}
+                      onClick={() => setCurrentDate(new Date(2026, i, 1))}
+                      aria-label={`Ir para ${m}`}
+                      aria-current={currentDate.getMonth() === i ? 'date' : undefined}
+                      className={`
+                        text-xs py-2 px-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50
+                        ${currentDate.getMonth() === i 
+                          ? 'bg-brand-dark text-white' 
+                          : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
+                      `}
+                    >
+                      {m.substring(0, 3)}
+                    </button>
+                  ))}
+               </div>
+            </div>
 
-          <div className="mt-12 pt-8 border-t border-slate-100">
-             <h4 className="text-brand-dark/70 text-sm font-medium mb-4 flex items-center gap-2">
-               <Info size={16} aria-hidden="true" /> Navegação Rápida
-             </h4>
-             <div className="grid grid-cols-3 gap-2" role="group" aria-label="Meses do ano">
-                {MONTHS.map((m, i) => (
-                  <button 
-                    key={m}
-                    onClick={() => setCurrentDate(new Date(2026, i, 1))}
-                    aria-label={`Ir para ${m}`}
-                    aria-current={currentDate.getMonth() === i ? 'date' : undefined}
-                    className={`
-                      text-xs py-2 px-1 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50
-                      ${currentDate.getMonth() === i 
-                        ? 'bg-brand-dark text-white' 
-                        : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}
-                    `}
-                  >
-                    {m.substring(0, 3)}
-                  </button>
-                ))}
+             <div className="mt-8 text-center">
+                <p className="text-xs text-slate-400">
+                  Feriados regionais aplicados para: <br/>
+                  <strong className="text-slate-600">Estado de São Paulo</strong>
+                </p>
+             </div>
+
+             <div className="mt-8 text-center text-xs text-slate-400 pt-4 border-t border-slate-100">
+                <p>2026 - Desenvolvido por <a href="https://instagram.com/orbee360" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors font-medium">Orbee360</a></p>
              </div>
           </div>
-
-           <div className="mt-8 text-center">
-              <p className="text-xs text-slate-400">
-                Feriados regionais aplicados para: <br/>
-                <strong className="text-slate-600">Estado de São Paulo</strong>
-              </p>
-           </div>
-
-           <div className="mt-8 text-center text-xs text-slate-400 pt-4 border-t border-slate-100">
-              <p>2026 - Desenvolvido por <a href="https://instagram.com/orbee360" target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors font-medium">Orbee360</a></p>
-           </div>
         </div>
       </aside>
 
