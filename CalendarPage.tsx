@@ -40,16 +40,52 @@ const getEventColorRaw = (type?: string) => {
   }
 }
 
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from './supabaseClient';
+
 const CalendarPage: React.FC = () => {
+  const { clientSlug } = useParams<{ clientSlug: string }>();
+  const navigate = useNavigate();
   // Start in January 2026
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
   const [activeFilter, setActiveFilter] = useState<EventType | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [clientData, setClientData] = useState<{ name: string, logo_url: string, business_type: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Ref for modal focus management
   const modalCloseButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const fetchClient = async () => {
+        if (!clientSlug) return;
+        setLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('clients')
+                .select('name, logo_url, business_type')
+                .eq('slug', clientSlug)
+                .single();
+            
+            if (error || !data) {
+                console.error('Client not found:', error);
+                // Optionally redirect to a 404 page or default client
+                // For now, we stay here but could show an error state
+                setClientData({ name: 'Cliente não encontrado', logo_url: '', business_type: '' });
+            } else {
+                setClientData(data);
+            }
+        } catch (err) {
+            console.error('Error fetching client:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchClient();
+  }, [clientSlug]);
 
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -121,6 +157,10 @@ const CalendarPage: React.FC = () => {
     });
   }, [currentDate, activeFilter]); // Re-calculate when filter changes
 
+  if (loading) {
+      return <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] text-slate-500">Carregando calendário...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-brand-dark p-4 md:p-8 flex flex-col lg:flex-row gap-8">
       
@@ -155,8 +195,10 @@ const CalendarPage: React.FC = () => {
           </div>
 
           <div className="text-left md:text-right hidden md:block">
-
-            <h2 className="text-xl text-slate-600 font-light">Calendário de Conteúdo 2026</h2>
+            {clientData?.logo_url ? (
+                <img src={clientData.logo_url} alt={`${clientData.name} Logo`} className="h-10 ml-auto object-contain mb-1" />
+            ) : null}
+            <h2 className="text-xl text-slate-600 font-light">{clientData ? `Calendário ${clientData.name} 2026` : 'Calendário de Conteúdo 2026'}</h2>
           </div>
         </header>
 
